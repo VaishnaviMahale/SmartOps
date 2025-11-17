@@ -1,9 +1,18 @@
+console.log('Starting SmartOps Backend...');
+
 import 'dotenv/config';
+
+console.log('dotenv loaded');
+console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
+
 import express from 'express';
 import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+
+console.log('Core packages imported');
+
 import connectDB from './config/database.js';
 import { createQueues } from './jobs/workflowQueue.js';
 import { initializeSocket } from './sockets/socketHandler.js';
@@ -12,6 +21,8 @@ import logger from './utils/logger.js';
 import scheduledJobs from './jobs/scheduledJobs.js';
 import startWorker from './jobs/worker.js';
 
+console.log('Internal modules imported');
+
 // Import routes
 import authRoutes from './modules/auth/auth.routes.js';
 import userRoutes from './modules/users/users.routes.js';
@@ -19,6 +30,8 @@ import workflowRoutes from './modules/workflows/workflows.routes.js';
 import taskRoutes from './modules/tasks/tasks.routes.js';
 import analyticsRoutes from './modules/analytics/analytics.routes.js';
 import notificationRoutes from './modules/notifications/notifications.routes.js';
+
+console.log('All routes imported successfully');
 
 // Create logs directory
 import { mkdirSync } from 'fs';
@@ -80,6 +93,12 @@ app.use(errorHandler);
 // Initialize services
 const startServer = async () => {
   try {
+    // Log environment check
+    logger.info('Starting server initialization...');
+    logger.info(`Environment: ${process.env.NODE_ENV || 'not set'}`);
+    logger.info(`MongoDB URI configured: ${process.env.MONGODB_URI ? 'Yes' : 'No'}`);
+    logger.info(`JWT Secret configured: ${process.env.JWT_SECRET ? 'Yes' : 'No'}`);
+
     // Connect to MongoDB
     await connectDB();
     logger.info('Connected to MongoDB');
@@ -108,6 +127,8 @@ const startServer = async () => {
 
   } catch (error) {
     logger.error(`Failed to start server: ${error.message}`);
+    logger.error(`Error stack: ${error.stack}`);
+    console.error('Server startup error:', error);
     process.exit(1);
   }
 };
