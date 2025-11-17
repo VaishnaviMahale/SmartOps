@@ -37,13 +37,20 @@ console.log('All routes imported successfully');
 import { mkdirSync } from 'fs';
 try {
   mkdirSync('logs', { recursive: true });
+  console.log('Logs directory created/verified');
 } catch (err) {
-  // Directory already exists
+  console.log('Logs directory error (non-fatal):', err.message);
 }
 
+console.log('Creating Express app...');
 const app = express();
+console.log('Creating HTTP server...');
 const server = createServer(app);
+console.log('Express app and server created');
+
 logger.info('Server instance created');
+
+console.log('Setting up middleware...');
 // Middleware
 app.use(helmet());
 app.use(cors({
@@ -52,6 +59,9 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+console.log('Basic middleware configured');
+
+console.log('Basic middleware configured');
 
 // Rate limiting
 const limiter = rateLimit({
@@ -60,8 +70,11 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
-logger.info('Rate limiting enabled', limiter)
+console.log('Rate limiting configured');
 
+logger.info('Rate limiting enabled', limiter);
+
+console.log('Setting up routes...');
 // Health check
 app.get('/health', (req, res) => {
   res.status(200).json({
@@ -78,6 +91,9 @@ app.use('/api/workflows', workflowRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
+console.log('All routes configured');
+
+console.log('All routes configured');
 
 // 404 handler
 app.use((req, res) => {
@@ -89,9 +105,11 @@ app.use((req, res) => {
 
 // Error handler (must be last)
 app.use(errorHandler);
+console.log('Error handlers configured');
 
 // Initialize services
 const startServer = async () => {
+  console.log('startServer function called');
   try {
     // Log environment check
     logger.info('Starting server initialization...');
@@ -141,17 +159,21 @@ process.on('unhandledRejection', (err) => {
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
   logger.error(`Uncaught Exception: ${err.message}`);
+  logger.error(`Stack: ${err.stack}`);
   process.exit(1);
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
+  console.log('SIGTERM received');
   logger.info('SIGTERM received, shutting down gracefully');
   server.close(() => {
     logger.info('Process terminated');
   });
 });
 
+console.log('About to call startServer()...');
 startServer();
 
