@@ -30,7 +30,7 @@ try {
 
 const app = express();
 const server = createServer(app);
-
+logger.info('Server instance created');
 // Middleware
 app.use(helmet());
 app.use(cors({
@@ -47,6 +47,7 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
+logger.info('Rate limiting enabled', limiter)
 
 // Health check
 app.get('/health', (req, res) => {
@@ -81,19 +82,23 @@ const startServer = async () => {
   try {
     // Connect to MongoDB
     await connectDB();
+    logger.info('Connected to MongoDB');
 
     // Create in-memory queues
     await createQueues();
+    logger.info('In-memory queues created');
 
     // Initialize Socket.IO
     initializeSocket(server);
+    logger.info('Socket.IO initialized');
 
     // Start worker
     await startWorker();
+    logger.info('Worker started');
 
     // Start scheduled jobs
     scheduledJobs.startAll();
-
+    logger.info('Scheduled jobs started');
     // Start server
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
