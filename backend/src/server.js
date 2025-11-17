@@ -112,41 +112,58 @@ const startServer = async () => {
   console.log('startServer function called');
   try {
     // Log environment check
+    console.log('Step 1: Environment check...');
     logger.info('Starting server initialization...');
     logger.info(`Environment: ${process.env.NODE_ENV || 'not set'}`);
     logger.info(`MongoDB URI configured: ${process.env.MONGODB_URI ? 'Yes' : 'No'}`);
     logger.info(`JWT Secret configured: ${process.env.JWT_SECRET ? 'Yes' : 'No'}`);
+    console.log('Environment check complete');
 
     // Connect to MongoDB
+    console.log('Step 2: Connecting to MongoDB...');
     await connectDB();
+    console.log('MongoDB connected successfully');
     logger.info('Connected to MongoDB');
 
     // Create in-memory queues
+    console.log('Step 3: Creating in-memory queues...');
     await createQueues();
+    console.log('Queues created successfully');
     logger.info('In-memory queues created');
 
     // Initialize Socket.IO
+    console.log('Step 4: Initializing Socket.IO...');
     initializeSocket(server);
+    console.log('Socket.IO initialized successfully');
     logger.info('Socket.IO initialized');
 
     // Start worker
+    console.log('Step 5: Starting worker...');
     await startWorker();
+    console.log('Worker started successfully');
     logger.info('Worker started');
 
     // Start scheduled jobs
+    console.log('Step 6: Starting scheduled jobs...');
     scheduledJobs.startAll();
+    console.log('Scheduled jobs started successfully');
     logger.info('Scheduled jobs started');
+
     // Start server
+    console.log('Step 7: Starting HTTP server...');
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
+      console.log(`✅ Server running on port ${PORT}`);
       logger.info(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
       logger.info(`Using in-memory queue (Redis not required)`);
     });
 
   } catch (error) {
+    console.error('❌ FATAL ERROR in startServer:');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     logger.error(`Failed to start server: ${error.message}`);
     logger.error(`Error stack: ${error.stack}`);
-    console.error('Server startup error:', error);
     process.exit(1);
   }
 };
@@ -175,5 +192,19 @@ process.on('SIGTERM', () => {
 });
 
 console.log('About to call startServer()...');
-startServer();
+try {
+  startServer().catch((err) => {
+    console.error('❌ Unhandled promise rejection in startServer:');
+    console.error('Error:', err);
+    console.error('Message:', err.message);
+    console.error('Stack:', err.stack);
+    process.exit(1);
+  });
+} catch (err) {
+  console.error('❌ Synchronous error calling startServer:');
+  console.error('Error:', err);
+  console.error('Message:', err.message);
+  console.error('Stack:', err.stack);
+  process.exit(1);
+}
 
